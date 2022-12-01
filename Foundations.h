@@ -21,6 +21,11 @@ typedef unsigned char byte;
 #define REGISTER_INS_OPR	0x0b
 #define REGISTER_SP_____	0x0c
 
+//VRAM registers
+#define REGISTER_X______    0x0d
+#define REGISTER_Y______    0x0d
+#define REGISTER_COL____    0x0e
+
 /*No operation*/
 #define NOP 0x00
 
@@ -35,16 +40,19 @@ register to specified value.*/
 
 /*copies the value of the
 target register to the address in
-RAM pointer to by the PTR
-register.*/
-#define CPY 0x30
+RAM pointed to the PTR
+register.
+(Copy To Ram from register)*/
+#define CTR 0x30
 
 /*Writes the contents of the targeted register to
-the address in RAM pointed to by PTR.*/
+the address in RAM pointed to by PTR.
+Write To Ram from register.*/
 #define WTR 0x40
 
 /*copies the value in ram pointed to by
-PTR into the specified register.*/
+PTR into the specified register.
+Read From Ram into register.*/
 #define RFR 0x50
 
 /*Adds the contents of register B and
@@ -56,8 +64,8 @@ and overwrites A with the result.*/
 #define SUB 0x70
 
 /*
-copies the value in RAM at address equal to PTR into
-the address in RAM equal to PTR.
+copies the value in RAM at address equal to DAT into
+the address in RAM pointed to by PTR.
 RAM[register_DAT] = RAM[register_PTR];
 */
 #define MRR 0x80
@@ -72,30 +80,30 @@ Copies the value to target register from the buffer register*/
 
 /*Bigger than branch
 branch, if the value in register A is bigger
-than the one in CPY then the program will jump
+than the one in BUF (buffer) then the program will jump
 to the target address*/
 #define GTB 0xB0
 
 /*Less than branch
 branch, if the value in register A is smaller
-than the one in CPY then the program will jump
+than the one in BUF (buffer) then the program will jump
 to the target address*/
 #define LTB 0xC0
 
 /*Less than branch
 branch, if the value in register A is equal to
-one in CPY then the program will jump to the
+one in BUF (buffer) then the program will jump to the
 target address*/
 #define ETB 0xD0
 
 /*Return,
 This will put the value in the SP register into the PC*/
 #define RET 0xE0
+
 /*
-This is going to be an emulator for a
-system based around generating sounds
-and making music.
+This switches RAM mode between VRAM and RAM (RMS = Ram Mode Switch).
 */
+#define RMS 0xF0
 
 /*
 Yes, for this program I am using hex notation for ALL of the variable assignments.
@@ -125,10 +133,16 @@ byte register_BUF = 0x00;  bool register_BUF_updated;
 byte register_SP = 0x00;  bool register_SP_updated;
 
 //255 bytes of ROM for program space.
-char ROM[0xff];
+byte ROM[0xff];
 
 //255 bytes of RAM for program space.
-char RAM[0xff];
+byte RAM[0xff];
+
+//254 bytes of RAM for program space.
+#define VRAM_SIZE 0xff
+byte VRAM[VRAM_SIZE];
+
+bool is_VRAM_mode;
 
 /*
 The first 4 bytes are an instruction.

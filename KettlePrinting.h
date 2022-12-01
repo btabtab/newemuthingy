@@ -26,7 +26,7 @@ void printK(char* string, Color n_colour)
 	{
 		char input[2] = {string[i], '\0'};
 
-		DrawText(input, ((print_gap << 1) * print_column), ((print_gap << 2) * print_row), 25, n_colour);
+		DrawText(input, (((print_gap + 2) << 1) * print_column), ((print_gap << 2) * print_row), 25, n_colour);
 		print_column++;
 
 		if(input[0] == '\n')
