@@ -106,23 +106,23 @@ this is:
 */
 
 //Register A
-byte register_A = 0x00;
+byte register_A = 0x00;  bool register_A_updated;
 //Register B
-byte register_B = 0x00;
+byte register_B = 0x00;  bool register_B_updated;
 //Register C
-byte register_C = 0x00;
+byte register_C = 0x00;  bool register_C_updated;
 //Register D
-byte register_D = 0x00;
+byte register_D = 0x00;  bool register_D_updated;
 //PC
-byte register_PC = 0x00;
+byte register_PC = 0x00;  bool register_PC_updated;
 //IO register
-byte register_IO = 0x00;
+byte register_IO = 0x00;  bool register_IO_updated;
 //PTR register for RAM writes.
-byte register_PTR = 0x00;
+byte register_PTR = 0x00;  bool register_PTR_updated;
 //The copy buffer register.
-byte register_BUF = 0x00;
+byte register_BUF = 0x00;  bool register_BUF_updated;
 //The stack pointer (the value of the PC befor a jump).
-byte register_SP = 0x00;
+byte register_SP = 0x00;  bool register_SP_updated;
 
 //255 bytes of ROM for program space.
 char ROM[0xff];
@@ -134,17 +134,19 @@ char RAM[0xff];
 The first 4 bytes are an instruction.
 The last 4 bytes are the target register.
 */
-byte register_INS = 0x00;
+byte register_INS = 0x00;  bool INS_updated;
 
 /*
 This is the data for the instruction.
 */
-byte register_DAT = 0x00;
+byte register_DAT = 0x00;  bool register_DAT_updated;
 
 //This is the register the instruction is targeted (first 4 bits).
-byte register_INS_reg = 0x00;
+byte register_INS_reg = 0x00; bool register_INS_reg_updated;
 //This is the operation/instruction (last 4 bits).
-byte register_INS_opr = 0x00;
+byte register_INS_opr = 0x00; bool register_INS_opr_updated;
 
+byte x_register = 0x00, y_register = 0x00;  bool x_register_updated, y_register_updated;
+byte colour_register = 0x00; bool colour_register_updated;
 
 #endif

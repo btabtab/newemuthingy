@@ -11,7 +11,6 @@ char* getGlobalKettleBuffer()
 	return global_kettle_printing_buffer;
 }
 int print_column, print_row, print_gap = 7;
-Color text_colour;
 
 #include <string.h>
 
@@ -21,13 +20,13 @@ void newKLine()
 	print_row++;
 }
 
-void printK(char* string)
+void printK(char* string, Color n_colour)
 {
 	for(int i = 0; i != strlen(string); i++)
 	{
 		char input[2] = {string[i], '\0'};
 
-		DrawText(input, ((print_gap << 1) * print_column), ((print_gap << 2) * print_row), 25, text_colour);
+		DrawText(input, ((print_gap << 1) * print_column), ((print_gap << 2) * print_row), 25, n_colour);
 		print_column++;
 
 		if(input[0] == '\n')
@@ -35,21 +34,16 @@ void printK(char* string)
 			newKLine();
 		}
 	}
-	// if(print_column == KETTLE_WRAP_LIMIT)
-	// {
-	// 	newKLine();
-	// }
 }
 
-void printKFromBuffer()
+void printKFromBuffer(Color n_colour)
 {
-	printK(getGlobalKettleBuffer());
+	printK(getGlobalKettleBuffer(), n_colour);
 }
 
 void clearKScreen()
 {
 	print_column = print_row = 0;
-	text_colour = WHITE;
 	ClearBackground(BLACK);
 }
 #endif
