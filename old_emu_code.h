@@ -3,10 +3,13 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
-#include <EmuPrinting.h>
 #include <KettlePrinting.h>
 #include <Foundations.h>
+
+void kettlePrintRegistersModern();
+void kettlePrintRegistersRAW();
 
 void loadInstructionIntoINSDATRegisters()
 {
@@ -21,79 +24,298 @@ void splitINSRegisterIntoRegAndOp()
 
 void executeInstruction();
 void writeToRegister(byte target, byte value);
-byte getRegADDR(byte target);
+byte getRegData(byte target);
 
 void loadProgramIntoROM(byte* program, byte offset, int length)
 {
-	for(byte a = 0; a != length+1; a++)
+	for(byte a = 0; a != length; a++)
 	{
-		ROM[a + offset] = program[a];
+		ROM[offset + a] = program[a];
+	}
+}
+void loadFunctionIntoROMSmart(byte* program, byte length, byte* int_to_write_auto_offset_to)
+{
+	static byte auto_offset = 0;
+	auto_offset += length;
+	if(int_to_write_auto_offset_to)
+	{
+		(*int_to_write_auto_offset_to) = auto_offset;
+	}
+	loadProgramIntoROM(program, (auto_offset - length), length);
+}
+
+void clearAllMemory()
+{
+	register_A = register_B = register_C = register_D = register_DAT = register_INS = register_IO = register_PC = register_PTR = register_SP = 0;
+	for(int i = 0; i != 0xff; i++)
+	{
+		ROM[i] = RAM[i] = VRAM[i] = 0x00;
+	}
+	for(int i = 0; i != 0x10; i++)
+	{
+		stack[i] = updated_stack[i] = 0x00;
 	}
 }
 
-int runEmu()
+Color VRAM_colours[] =
+{
+	WHITE,
+	LIGHTGRAY,
+	GRAY,
+	DARKGRAY,
+	YELLOW,
+	GOLD,
+	ORANGE,
+	PINK,
+	RED,
+	MAROON,
+	GREEN,
+	LIME,
+	DARKGREEN,
+	SKYBLUE,
+	BLUE,
+	DARKBLUE,
+	PURPLE,
+	VIOLET,
+	DARKPURPLE,
+	BEIGE,
+	BROWN,
+	DARKBROWN,
+	BLACK
+};
+
+void drawScreenSmall(int x, int y)
+{
+	for(int xi = -3; xi != (16 + 3); xi++)
+	{
+		for(int yi = -3; yi != (16 + 3); yi++)
+		{
+			DrawPixel(x + xi, y + yi, ORANGE);
+		}
+	}
+	for(int xi = 0; xi != 16; xi++)
+	{
+		for(int yi = 0; yi != 16; yi++)
+		{
+			DrawPixel((x + xi), (y + yi), VRAM_colours[(int)VRAM[xi + (16 * yi)]]);
+		}
+	}
+}
+int fixRange(int num, int max)
+{
+	if (max < num)
+	{
+		if (max < num)
+		{
+			return max;
+		}
+		return max - num;
+	}
+	return num;
+}
+void drawScreenBig(int x, int y, int size)
+{
+
+	for(int xi = 0; xi != 16; xi++)
+	{
+		for(int yi = 0; yi != 16; yi++)
+		{
+			for(int xii = 0; xii != size; xii++)
+			{
+				for(int yii = 0; yii != size; yii++)
+				{
+					DrawPixel(x + (xi * size) + xii, y + (yi * size) + yii, VRAM_colours[fixRange((int)VRAM[xi + (16 * yi)], 0x0f)]);
+				}
+			}
+			// DrawPixel(x + (xi * size), y + (yi * size), VRAM_colours[(int)VRAM[xi + (16 * yi)]]);
+		}
+	}
+}
+void printInformationText();
+void initialiseProgram()
 {
 	/*
 	This increments the values
 	in registers A and B in
 	the fibbonachi sequence.
 	*/
-	byte fibbonachi_progam[] = {
+	/*
+	byte fibbonachi_progam[] =
+	{
 		(SET | REGISTER_A______), 0x01,//set register A
 		(NOP | NOREG___________), 0x00,// |-
-		(CTB | REGISTER_A______), 0x00,// o = a;  //0x00 <- reg b
+		(RTB | REGISTER_A______), 0x00,// o = a;  //0x00 <- reg b
 		(ADD | NOREG___________), 0x00,// a += b; //add a + b
-		(CFB | REGISTER_B______), 0x00,// b = o;  //reg a <- 0x00
-		(JP_ | NOREG___________), 0x02,//  \<--Jump to address 0x04.
+		(RFB | REGISTER_B______), 0x00,// b = o;  //reg a <- 0x00
+		(JMP | NOREG___________), 0x02,//  \<--Jump to address 0x04.
 	};
-	byte RAMFILL_program[] =
+	*/
+	byte main_program[] =
 	{
-		(SET | REGISTER_B______), 0x01,//set register B to 1,
-		(ADD | NOREG___________), 0x00,//increments the value of reg A,
-		(CTB | REGISTER_B______), 0x00,//copies the value of reg B to BUF,
-		(CTR | REGISTER_A______), 0x00,//copies the value of reg A to RAM[PTR],
-		(RFR | REGISTER_PTR____), 0x00,//copies the value of RAM[PTR] to PTR,
-		(GTB | NOREG___________), 0x0E,//asks if register A is bigger than BUF, if so then it jumps to 0x0E,
-		(JP_ | NOREG___________), 0x02,//jumps to 0x02 if A is not bigger than BUF,
-		(CTB | REGISTER_A______), 0x00,//copies the value of register A to the buffer,
-		(CFB | REGISTER_PTR____), 0x00,//copies the value of BUF to PTR,
-		(RMS | NOREG___________), 0x00,//switches RAM mode,
-		(JP_ | NOREG___________), 0x00,//jumps to program start.,
+		(SET | REGISTER_C______), 0x01,// |-
+		(RTB | REGISTER_C______), 0x00,// |-
+		(JMP | NOREG___________), 0x20,// |-
+		(SET | REGISTER_SP_____), 0x00,// |-
+		(JMP | NOREG___________), 0x00,// |-
+	};
+	byte ptr_increment[] =
+	{
+		(SET | REGISTER_A______), 0x01,// |-
+		(JMP | NOREG___________), 0xE0,// |-
+		(ADD | REGISTER_PTR____), 0x00,// |-
+		(RFB | REGISTER_PTR____), 0x00,// |-
+		(RET | NOREG___________), 0x00,// |-
+	};
+	byte updateVRAM[] =
+	{
+		(SRM | NOREG___________), 0x00,// |-
+		(CTR | REGISTER_C______), 0x00,// |-
+		(SRM | NOREG___________), 0x00,// |-
+		(RET | NOREG___________), 0x00,// |-
 	};
 
-	for(int i = 0; i != 0xff; i++)
+	//this is just in case stuff breaks and the PC becoms a non multiple of 2
+	byte prog_reset[] =
 	{
-		ROM[i] = RAM[i] = VRAM[i] = 0x00;
-	}
-	for(byte a = 1; a != 0xff; a+=2)
-	{
-		ROM[a-1] = 0x00;
-		ROM[a-0] = 0xb0;
-	}
-	byte offset = 0x00;
-	loadProgramIntoROM(RAMFILL_program, offset, sizeof(RAMFILL_program));
+		(RET | NOREG___________), RET,//
+	};
 
+	clearAllMemory();
+
+	loadFunctionIntoROMSmart(main_program, 	sizeof(main_program), 	&main_program[5]);
+	loadFunctionIntoROMSmart(ptr_increment, sizeof(ptr_increment), 	&ptr_increment[3]);
+	loadFunctionIntoROMSmart(updateVRAM, 	sizeof(updateVRAM), 	NULL);
+
+	// loadProgramIntoROM(main_program,	0x00, sizeof(main_program));
+	// loadProgramIntoROM(ptr_increment,	0x20, sizeof(ptr_increment));
+	// loadProgramIntoROM(updateVRAM,		0xE0, sizeof(updateVRAM));
+	loadProgramIntoROM(prog_reset,		0xFE, sizeof(prog_reset));
+}
+
+void printSystemControls();
+void stepProgram()
+{
+	loadInstructionIntoINSDATRegisters();
+	splitINSRegisterIntoRegAndOp();
+	register_PC += 2;
+	executeInstruction();
+}
+void controlSystem()
+{
+	if(IsKeyPressed(KEY_Q))
+	{
+		stepProgram();
+	}
+	if(IsKeyPressed(KEY_W))
+	{
+		ROM[register_PC]++;
+	}
+	if(IsKeyPressed(KEY_E))
+	{
+		ROM[register_PC]--;
+	}
+	if(IsKeyPressed(KEY_R))
+	{
+		ROM[register_PC+1]++;
+	}
+	if(IsKeyPressed(KEY_T))
+	{
+		ROM[register_PC+1]--;
+	}
+}
+int runEmu()
+{
+	initialiseProgram();
+	bool render_internals = true, run_program = true;
 	while(!WindowShouldClose())
 	{
 		{
 			BeginDrawing();
 			{
 				clearKScreen();
-				kettlePrintRegistersRAW();
+				if(render_internals)
+				{
+					if(IsKeyDown(KEY_O))
+					{
+						kettlePrintRegistersRAW();
+					}
+					else
+					{
+						kettlePrintRegistersModern();
+						if(!run_program)
+						{
+							printSystemControls();
+						}
+					}
+				}
+				printInformationText();
+				drawScreenBig((2500 - VRAM_SIZE) - 3, (1000 - VRAM_SIZE) - 3, VRAM_SIZE >> 4);
 			}
 			EndDrawing();
 		}
+		if(run_program)
+		{
+			stepProgram();
+		}
 
-		loadInstructionIntoINSDATRegisters();
-		splitINSRegisterIntoRegAndOp();
-		register_PC += 2;
-		executeInstruction();
+		render_internals = (!IsKeyDown(KEY_G));
+		if(IsKeyPressed(KEY_S))
+		{
+			run_program = !run_program;
+			render_internals = true;
+		}
+		controlSystem();
 	}
 	return 0;
 }
 
+void pushPCToStack()
+{
+	if(register_SP == 0x10)
+	{
+		register_SP = 0x00;
+	}
+
+	stack[register_SP] = register_PC;
+
+	updated_stack[register_SP] = true;
+	
+	register_SP++;
+}
+void popStack()
+{
+	if(register_SP)
+	{
+		register_SP--;
+	}
+	register_PC = stack[register_SP];
+	stack[register_SP] = 0x00;
+	updated_stack[register_SP] = register_PC_updated = register_SP_updated = true;
+}
+void executeJump()
+{
+	//advances stack counter, updates stack at value.
+	pushPCToStack();
+	//updates PC value.
+	register_PC = register_DAT;
+}
+void executeADD(byte register_to_use)
+{
+	register_BUF = getRegData(register_to_use) + register_BUF;
+	register_BUF_updated = true;
+}
+void executeSUB(byte register_to_use)
+{
+	register_BUF = getRegData(register_to_use) - register_BUF;
+	register_BUF_updated = true;
+}
+void executeRET()
+{
+	popStack();
+}
 void executeInstruction()
 {
+	execution_cycles++;
 	switch (register_INS_opr)
 	{
 		case NOP:
@@ -102,13 +324,10 @@ void executeInstruction()
 		return;
 		break;
 
-		case JP_:
+		case JMP:
 			sprintf(getGlobalKettleBuffer(), "JP, sleeping for 1\n");
 			printKFromBuffer(WHITE);
-			//fist modification to this function in god knows how long!@!@:
-			register_SP = register_PC;
-			register_PC = register_DAT;
-			register_SP_updated = register_PC_updated = true;
+			executeJump();
 		return;
 		break;
 
@@ -120,25 +339,18 @@ void executeInstruction()
 		break;
 
 		case CTR:
-			sprintf(getGlobalKettleBuffer(), "copying val %02x, into RAM\n", getRegADDR(register_INS_reg));
+			sprintf(getGlobalKettleBuffer(), "copying val %02x, into RAM\n", getRegData(register_INS_reg));
 			printKFromBuffer(WHITE);
 			if(is_VRAM_mode)
 			{
-				VRAM[register_PTR] = getRegADDR(register_INS_reg);
+				VRAM[register_PTR] = getRegData(register_INS_reg);
 			}
 			else
 			{
-				RAM[register_PTR] = getRegADDR(register_INS_reg);
+				RAM[register_PTR] = getRegData(register_INS_reg);
 			}
 		return;
 		break;
-
-		// case PTR:
-		// 	sprintf(getGlobalKettleBuffer(), "PTR\n");
-		printKFromBuffer(WHITE);
-		// 	register_PTR = register_DAT;
-		// return;
-		// break;
 
 		case WTR:
 			sprintf(getGlobalKettleBuffer(), "WTR\n");
@@ -151,7 +363,7 @@ void executeInstruction()
 			{
 				RAM[register_PTR] = register_DAT;
 			}
-		return;
+			return;
 		break;
 
 		case RFR:
@@ -173,17 +385,16 @@ void executeInstruction()
 		case ADD:
 			sprintf(getGlobalKettleBuffer(), "ADD\n");
 			printKFromBuffer(WHITE);
-			register_A = register_A + register_B;
-			register_A_updated = true;
+			executeADD(register_INS_reg);
 			return;
 		break;
 		case SUB:
 			sprintf(getGlobalKettleBuffer(), "SUB\n");
 			printKFromBuffer(WHITE);
-			register_A = register_A - register_B;
-			register_A_updated = true;
+			executeSUB(register_INS_reg);
+		break;
 		case MRR:
-			sprintf(getGlobalKettleBuffer(), "Move ram ro ram (MRR)\n");
+			sprintf(getGlobalKettleBuffer(), "Move ram to ram (MRR)\n");
 			printKFromBuffer(WHITE);
 			if(is_VRAM_mode)
 			{
@@ -194,11 +405,11 @@ void executeInstruction()
 				RAM[register_DAT] = RAM[register_PTR];
 			}
 		break;
-		case CTB:
-			register_BUF = getRegADDR(register_INS_reg);
+		case RTB:
+			register_BUF = getRegData(register_INS_reg);
 			register_BUF_updated = true;
 		break;
-		case CFB:
+		case RFB:
 			writeToRegister(register_INS_reg, register_BUF);
 		break;
 		//TODO: test BTB, LTB, ETB!!
@@ -209,9 +420,7 @@ void executeInstruction()
 			printKFromBuffer(WHITE);
 			if(register_A > register_BUF)
 			{
-				register_SP = register_PC;
-				register_PC = register_DAT;
-				register_SP_updated = register_PC_updated = true;
+				executeJump();
 				sprintf(getGlobalKettleBuffer(), "true condition, executing jump.\n");
 				printKFromBuffer(WHITE);
 			}
@@ -223,7 +432,7 @@ void executeInstruction()
 			printKFromBuffer(WHITE);
 			if(register_A < register_BUF)
 			{
-				register_SP = register_PC;
+				pushPCToStack();
 				register_PC = register_DAT;
 				register_SP_updated = register_PC_updated = true;
 				sprintf(getGlobalKettleBuffer(), "true condition, executing jump.\n");
@@ -237,9 +446,8 @@ void executeInstruction()
 			printKFromBuffer(WHITE);
 			if(register_A == register_BUF)
 			{
-				register_SP = register_PC;
+				pushPCToStack();
 				register_PC = register_DAT;
-				register_SP_updated = register_PC_updated = true;
 				sprintf(getGlobalKettleBuffer(), "true condition, executing jump.\n");
 				printKFromBuffer(WHITE);
 			}
@@ -248,17 +456,16 @@ void executeInstruction()
 		case RET:
 			sprintf(getGlobalKettleBuffer(), "Return\n");
 			printKFromBuffer(WHITE);
-			register_PC = register_SP;
-			register_PC_updated = true;
+			executeRET();
 		break;
 
-		case RMS:
+		case SRM:
 			is_VRAM_mode = !is_VRAM_mode;
 		break;
 
 		//If this happens something has gone horribly wrong.
 		default:
-		sprintf(getGlobalKettleBuffer(), "klaopk\n");
+		sprintf(getGlobalKettleBuffer(), "\n");
 		printKFromBuffer(WHITE);
 		break;
 	}
@@ -367,7 +574,7 @@ void writeToRegister(byte target, byte value)
 	}
 }
 
-byte getRegADDR(byte target)
+byte getRegData(byte target)
 {
 	switch (target >> 4)
 	{

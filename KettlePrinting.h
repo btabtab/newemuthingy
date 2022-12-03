@@ -20,19 +20,25 @@ void newKLine()
 	print_row++;
 }
 
+void clearKScreen()
+{
+	print_column = print_row = 0;
+	ClearBackground(BLACK);
+}
+
 void printK(char* string, Color n_colour)
 {
 	for(int i = 0; i != strlen(string); i++)
 	{
 		char input[2] = {string[i], '\0'};
 
-		DrawText(input, (((print_gap + 2) << 1) * print_column), ((print_gap << 2) * print_row), 25, n_colour);
+		DrawText(input, (((print_gap + 1) << 1) * print_column), ((print_gap << 2) * print_row), 23, n_colour);
 		print_column++;
 
 		if(input[0] == '\n')
 		{
 			newKLine();
-		}
+		}		
 	}
 }
 
@@ -41,9 +47,4 @@ void printKFromBuffer(Color n_colour)
 	printK(getGlobalKettleBuffer(), n_colour);
 }
 
-void clearKScreen()
-{
-	print_column = print_row = 0;
-	ClearBackground(BLACK);
-}
 #endif
