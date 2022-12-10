@@ -50,7 +50,8 @@ register.
 (Copy To Ram from register)*/
 #define CTR 0x30
 
-/*Writes specified value To Ram.*/
+/*Writes specified value To Ram.
+Write To Ram*/
 #define WTR 0x40
 
 /*copies the value in ram pointed to by

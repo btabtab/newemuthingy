@@ -15,24 +15,26 @@ void kettlePrintROMRowColour(int print_row)
 	
 	for(byte col = 0; col != 16; col++)
 	{
+		byte access_index = (byte)ROM[col + (16 * print_row)];
+
 		if(col + (16 * print_row) == register_PC)
 		{
-			sprintf(getGlobalKettleBuffer(), "[%02X]", (byte)ROM[col + (16 * print_row)]);
+			sprintf(getGlobalKettleBuffer(), "[%02X]", access_index);
 			printKFromBuffer(GREEN);
 			col++;
-			sprintf(getGlobalKettleBuffer(), "{%02X}", (byte)ROM[col + (16 * print_row)]);
+			sprintf(getGlobalKettleBuffer(), "{%02X}", access_index);
 			printKFromBuffer(BLUE);
 		}
 		else
 		{
 			if(col + (16 * print_row) == register_PC - 1)
 			{
-				sprintf(getGlobalKettleBuffer(), " %02X$", (byte)ROM[col + (16 * print_row)]);
+				sprintf(getGlobalKettleBuffer(), " %02X$", access_index);
 				printKFromBuffer(WHITE);
 			}
 			else
 			{
-				sprintf(getGlobalKettleBuffer(), " %02X ", (byte)ROM[col + (16 * print_row)]);
+				sprintf(getGlobalKettleBuffer(), " %02X ", access_index);
 				printKFromBuffer(WHITE);
 			}
 		}
@@ -57,10 +59,38 @@ char ins_list[16][4] =
 	"RET",
 	"SRM",
 };
+char reg_list[0x10][5] =
+{
+	"    ",
+	"RG A",
+	"RG B",
+	"RG C",
+	"RG D",
+	" PC ",
+	" IO ",
+	"PNTR",
+	"PROC",//process register
+	"DATA",
+	"INST",//instruction
+	"OPER",//operand
+	" SP ",
+	"ERR1",
+	"ERR2",
+	"ERR3",
+};
+
 
 char* getInstructionAsString(byte instruction)
 {
 	return ins_list[instruction >> 4];
+}
+bool doesInsUseRegister(byte reg)
+{
+	return (reg == ADD || reg == SUB || reg == SET || reg == CTR || reg == RFR || reg == RTB || reg == RFB || reg == GTB || reg == LTB || reg == ETB);
+}
+char* getRegisterAsString(byte reg)
+{
+	return reg_list[(byte)(reg << 4) >> 4];
 }
 void kettlePrintROMFormattedRowColour(int print_row)
 {
@@ -70,22 +100,24 @@ void kettlePrintROMFormattedRowColour(int print_row)
 	
 	for(byte col = 0; col != 16; col++)
 	{
+		byte access_index = (byte)col + (16 * print_row);
+
 		if(col + (16 * print_row) == register_PC)
 		{
-			sprintf(getGlobalKettleBuffer(), "$%s", getInstructionAsString((byte)ROM[col + (16 * print_row)]));
+			sprintf(getGlobalKettleBuffer(), "$%s", getInstructionAsString(ROM[access_index]));
 			printKFromBuffer(GREEN);
 			col++;
-			sprintf(getGlobalKettleBuffer(), "{%02X}", (byte)ROM[col + (16 * print_row)]);
+			sprintf(getGlobalKettleBuffer(), "{%02X}", ROM[access_index+1]);
 			printKFromBuffer(BLUE);
 		}
 		else
 		{
-			sprintf(getGlobalKettleBuffer(), " %s", getInstructionAsString((byte)ROM[col + (16 * print_row)]));
+			sprintf(getGlobalKettleBuffer(), " %s", getInstructionAsString(ROM[access_index]));
 			printKFromBuffer(WHITE);
 			col++;
-			if((byte)ROM[col + (16 * print_row)] || (byte)ROM[(col - 1) + (16 * print_row)])
+			if(ROM[access_index] || (byte)ROM[(col - 1) + (16 * print_row)])
 			{
-				sprintf(getGlobalKettleBuffer(), "{%02X}", (byte)ROM[col + (16 * print_row)]);
+				sprintf(getGlobalKettleBuffer(), "{%02X}", ROM[access_index+1]);
 			}
 			else
 			{
@@ -104,15 +136,15 @@ void kettlePrintRAMRow(int print_row)
 	{
 		if(col + (16 * print_row) == register_PTR)
 		{
-			if(is_VRAM_mode){sprintf(getGlobalKettleBuffer(), ">%02X<", (unsigned)VRAM[col + (16 * print_row)]);}
-			else{sprintf(getGlobalKettleBuffer(), ">%02X<", (unsigned)RAM[col + (16 * print_row)]);}
+			if(is_VRAM_mode){sprintf(getGlobalKettleBuffer(), ">%02X<", (byte)VRAM[col + (16 * print_row)]);}
+			else{sprintf(getGlobalKettleBuffer(), ">%02X<", (byte)RAM[col + (16 * print_row)]);}
 
 			printKFromBuffer(VRAM_colours[is_VRAM_mode + 1 + 2]);
 		}
 		else
 		{
-			if(is_VRAM_mode){sprintf(getGlobalKettleBuffer(), " %02X ", (unsigned)VRAM[col + (16 * print_row)]);}
-			else{sprintf(getGlobalKettleBuffer(), " %02X ", (unsigned)RAM[col + (16 * print_row)]);}
+			if(is_VRAM_mode){sprintf(getGlobalKettleBuffer(), " %02X ", (byte)VRAM[col + (16 * print_row)]);}
+			else{sprintf(getGlobalKettleBuffer(), " %02X ", (byte)RAM[col + (16 * print_row)]);}
 
 			printKFromBuffer(VRAM_colours[is_VRAM_mode + 1]);
 		}
@@ -129,7 +161,7 @@ void resetUpdatedRegisters()
 	}
 }
 
-Color update_display_colours[] = {WHITE, PURPLE};
+Color update_display_colours[] = {WHITE, PURPLE, GRAY, DARKPURPLE};
 
 int n_frame_rate = 2;
 
@@ -232,21 +264,21 @@ void kettlePrintRegistersModern()
 	SetTargetFPS(n_frame_rate);
 
 	sprintf(getGlobalKettleBuffer(), "[A   =\t%02X] ", (unsigned)register_A			); printKFromBuffer(update_display_colours[register_A_updated]			); kettlePrintROMFormattedRowColour(0x00), kettlePrintRAMRow(0x00);
-	sprintf(getGlobalKettleBuffer(), "[B   =\t%02X] ", (unsigned)register_B			); printKFromBuffer(update_display_colours[register_B_updated]			); kettlePrintROMFormattedRowColour(0x01), kettlePrintRAMRow(0x01);
+	sprintf(getGlobalKettleBuffer(), "[B   =\t%02X] ", (unsigned)register_B			); printKFromBuffer(update_display_colours[register_B_updated + 2]		); kettlePrintROMFormattedRowColour(0x01), kettlePrintRAMRow(0x01);
 	sprintf(getGlobalKettleBuffer(), "[C   =\t%02X] ", (unsigned)register_C			); printKFromBuffer(update_display_colours[register_C_updated]			); kettlePrintROMFormattedRowColour(0x02), kettlePrintRAMRow(0x02);
-	sprintf(getGlobalKettleBuffer(), "[D   =\t%02X] ", (unsigned)register_D			); printKFromBuffer(update_display_colours[register_D_updated]			); kettlePrintROMFormattedRowColour(0x03), kettlePrintRAMRow(0x03);
+	sprintf(getGlobalKettleBuffer(), "[D   =\t%02X] ", (unsigned)register_D			); printKFromBuffer(update_display_colours[register_D_updated + 2]		); kettlePrintROMFormattedRowColour(0x03), kettlePrintRAMRow(0x03);
 	sprintf(getGlobalKettleBuffer(), "[PC  =\t%02X] ", (unsigned)register_PC 		); printKFromBuffer(update_display_colours[register_PC_updated]			); kettlePrintROMFormattedRowColour(0x04), kettlePrintRAMRow(0x04);
-	sprintf(getGlobalKettleBuffer(), "[PTR =\t%02X] ", (unsigned)register_PTR		); printKFromBuffer(update_display_colours[register_PTR_updated]		); kettlePrintROMFormattedRowColour(0x05), kettlePrintRAMRow(0x05);
+	sprintf(getGlobalKettleBuffer(), "[PTR =\t%02X] ", (unsigned)register_PTR		); printKFromBuffer(update_display_colours[register_PTR_updated + 2]	); kettlePrintROMFormattedRowColour(0x05), kettlePrintRAMRow(0x05);
 	sprintf(getGlobalKettleBuffer(), "[INS =\t%02X] ", (unsigned)register_INS 		); printKFromBuffer(update_display_colours[register_INS_reg_updated]	); kettlePrintROMFormattedRowColour(0x06), kettlePrintRAMRow(0x06);
-	sprintf(getGlobalKettleBuffer(), "[DAT =\t%02X] ", (unsigned)register_DAT 		); printKFromBuffer(update_display_colours[register_DAT_updated]		); kettlePrintROMFormattedRowColour(0x07), kettlePrintRAMRow(0x07);
+	sprintf(getGlobalKettleBuffer(), "[DAT =\t%02X] ", (unsigned)register_DAT 		); printKFromBuffer(update_display_colours[register_DAT_updated + 2]	); kettlePrintROMFormattedRowColour(0x07), kettlePrintRAMRow(0x07);
 	sprintf(getGlobalKettleBuffer(), "[opr =\t%02X] ", (unsigned)register_INS_opr	); printKFromBuffer(update_display_colours[register_INS_opr_updated]	); kettlePrintROMFormattedRowColour(0x08), kettlePrintRAMRow(0x08);
-	sprintf(getGlobalKettleBuffer(), "[reg =\t%02X] ", (unsigned)register_INS_reg	); printKFromBuffer(update_display_colours[register_INS_reg_updated]	); kettlePrintROMFormattedRowColour(0x09), kettlePrintRAMRow(0x09);
+	sprintf(getGlobalKettleBuffer(), "[reg =\t%02X] ", (unsigned)register_INS_reg	); printKFromBuffer(update_display_colours[register_INS_reg_updated + 2]); kettlePrintROMFormattedRowColour(0x09), kettlePrintRAMRow(0x09);
 	sprintf(getGlobalKettleBuffer(), "[IO  =\t%02X] ", (unsigned)register_IO 		); printKFromBuffer(update_display_colours[register_IO_updated]			); kettlePrintROMFormattedRowColour(0x0a), kettlePrintRAMRow(0x0a);
-	sprintf(getGlobalKettleBuffer(), "[BUF =\t%02X] ", (unsigned)register_BUF		); printKFromBuffer(update_display_colours[register_BUF_updated]		); kettlePrintROMFormattedRowColour(0x0b), kettlePrintRAMRow(0x0b);
+	sprintf(getGlobalKettleBuffer(), "[BUF =\t%02X] ", (unsigned)register_BUF		); printKFromBuffer(update_display_colours[register_BUF_updated + 2]	); kettlePrintROMFormattedRowColour(0x0b), kettlePrintRAMRow(0x0b);
 	sprintf(getGlobalKettleBuffer(), "[SP  =\t%02X] ", (unsigned)register_SP 		); printKFromBuffer(update_display_colours[register_SP_updated]			); kettlePrintROMFormattedRowColour(0x0c), kettlePrintRAMRow(0x0c);
-	sprintf(getGlobalKettleBuffer(), "[    =\t%02X] ", (unsigned)0					); printKFromBuffer(update_display_colours[0]							); kettlePrintROMFormattedRowColour(0x0d), kettlePrintRAMRow(0x0d);
+	sprintf(getGlobalKettleBuffer(), "[    =\t%02X] ", (unsigned)0					); printKFromBuffer(update_display_colours[0 + 2]						); kettlePrintROMFormattedRowColour(0x0d), kettlePrintRAMRow(0x0d);
 	sprintf(getGlobalKettleBuffer(), "[    =\t%02X] ", (unsigned)0					); printKFromBuffer(update_display_colours[0]							); kettlePrintROMFormattedRowColour(0x0e), kettlePrintRAMRow(0x0e);
-	sprintf(getGlobalKettleBuffer(), "[    =\t%02X] ", (unsigned)0					); printKFromBuffer(update_display_colours[colour_register_updated]		); kettlePrintROMFormattedRowColour(0x0f), kettlePrintRAMRow(0x0f);
+	sprintf(getGlobalKettleBuffer(), "[    =\t%02X] ", (unsigned)0					); printKFromBuffer(update_display_colours[colour_register_updated + 2]	); kettlePrintROMFormattedRowColour(0x0f), kettlePrintRAMRow(0x0f);
 	printStack();
 	printKFromBuffer(WHITE);
 }
@@ -254,9 +286,14 @@ void printInformationText()
 {
 	char* ram_modes[2] = {"RAM", "V-RAM"};
 	sprintf(getGlobalKettleBuffer(), "\nexecution cycles: %d (This is how many instructions have been executed).\n[Current mode for RAM: %s]\n frame rate / target frame rate = %d / %d\n", execution_cycles, ram_modes[is_VRAM_mode], GetFPS(), n_frame_rate);
-	sprintf(getGlobalKettleBuffer(), "%s\n, Z resets the program, G hides the internals, S stops the program", getGlobalKettleBuffer());
+	sprintf(getGlobalKettleBuffer(), "%s\n, Z resets the program, G hides the internals, S stops the program\n", getGlobalKettleBuffer());
 	printKFromBuffer(WHITE);
-	
+
+	sprintf(getGlobalKettleBuffer(), "(formatted)	\ncurrent instruction: ( %s | %s ) 0x%02X\n", getInstructionAsString(ROM[register_PC] >> 4), getRegisterAsString(ROM[register_PC]), ROM[register_PC + 1]);
+	printKFromBuffer(ORANGE);
+	sprintf(getGlobalKettleBuffer(), "(raw)			\ncurrent instruction: ( 0x%02X | 0x%02X ) 0x%02X\n", (ROM[register_PC]), ((ROM[register_PC] << 4) >> 4), ROM[register_PC + 1]);
+	printKFromBuffer(RED);
+
 	resetUpdatedRegisters();
 }
 /*
@@ -268,10 +305,14 @@ T decrements the value at the PC's address,
 */
 void printSystemControls()
 {
-	sprintf(getGlobalKettleBuffer(), "%s"	, "Press:");
-	sprintf(getGlobalKettleBuffer(), "%s\n"	, getGlobalKettleBuffer(), "Q to step");
-	sprintf(getGlobalKettleBuffer(), "%s\n"	, getGlobalKettleBuffer(), "");
-	sprintf(getGlobalKettleBuffer(), "%s\n"	, getGlobalKettleBuffer(), "");
+	sprintf(getGlobalKettleBuffer(), "Press:\n");
+	sprintf(getGlobalKettleBuffer(), "%sQ to step\n", getGlobalKettleBuffer());
+	sprintf(getGlobalKettleBuffer(), "%sW increments the instruction at the PC's address,\n", getGlobalKettleBuffer());
+	sprintf(getGlobalKettleBuffer(), "%sE decrements the instruction at the PC's address,\n", getGlobalKettleBuffer());
+	sprintf(getGlobalKettleBuffer(), "%sR decrements the register at the PC's address,\n", getGlobalKettleBuffer());
+	sprintf(getGlobalKettleBuffer(), "%sT decrements the register at the PC's address,\n", getGlobalKettleBuffer());
+	sprintf(getGlobalKettleBuffer(), "%sY increments the data at the PC's address ( +1),\n", getGlobalKettleBuffer());
+	sprintf(getGlobalKettleBuffer(), "%sTU decrements the data at the PC's address ( +1),\n", getGlobalKettleBuffer());
 	printKFromBuffer(WHITE);
 }
 

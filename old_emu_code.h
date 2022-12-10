@@ -173,6 +173,137 @@ void initialiseProgram()
 		(SRM | NOREG___________), 0x00,// |-
 		(RET | NOREG___________), 0x00,// |-
 	};
+	byte max_program_len[] =
+	{
+		(SET | REGISTER_A______), 0x01,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(ADD | REGISTER_A______), 0x00,// |-
+		(SET | REGISTER_B______), 0x01,// |-
+		// (ADD | REGISTER_A______), 0x00,// |-
+	};
 
 	//this is just in case stuff breaks and the PC becoms a non multiple of 2
 	byte prog_reset[] =
@@ -182,10 +313,11 @@ void initialiseProgram()
 
 	clearAllMemory();
 
-	loadFunctionIntoROMSmart(main_program, 	sizeof(main_program), 	&main_program[5]);
-	loadFunctionIntoROMSmart(ptr_increment, sizeof(ptr_increment), 	&ptr_increment[3]);
-	loadFunctionIntoROMSmart(updateVRAM, 	sizeof(updateVRAM), 	NULL);
+	// loadFunctionIntoROMSmart(main_program, 	sizeof(main_program), 	&main_program[5]);
+	// loadFunctionIntoROMSmart(ptr_increment, sizeof(ptr_increment), 	&ptr_increment[3]);
+	// loadFunctionIntoROMSmart(updateVRAM, 	sizeof(updateVRAM), 	NULL);
 
+	loadFunctionIntoROMSmart(max_program_len, sizeof(max_program_len), NULL);
 	// loadProgramIntoROM(main_program,	0x00, sizeof(main_program));
 	// loadProgramIntoROM(ptr_increment,	0x20, sizeof(ptr_increment));
 	// loadProgramIntoROM(updateVRAM,		0xE0, sizeof(updateVRAM));
@@ -208,20 +340,31 @@ void controlSystem()
 	}
 	if(IsKeyPressed(KEY_W))
 	{
-		ROM[register_PC]++;
+		ROM[register_PC] -= (byte)0x10;
 	}
 	if(IsKeyPressed(KEY_E))
 	{
-		ROM[register_PC]--;
+		ROM[register_PC] += (byte)0x10;
 	}
 	if(IsKeyPressed(KEY_R))
 	{
-		ROM[register_PC+1]++;
+		byte val = (((ROM[register_PC] - (byte)0x01) << 4) >> 4);
+		ROM[register_PC] = ((ROM[register_PC] >> 4) << 4) | val;
 	}
 	if(IsKeyPressed(KEY_T))
 	{
-		ROM[register_PC+1]--;
+		byte val = (((ROM[register_PC] + (byte)0x01) << 4) >> 4);
+		ROM[register_PC] = ((ROM[register_PC] >> 4) << 4) | val;
 	}
+	if(IsKeyPressed(KEY_Y))
+	{
+		ROM[register_PC+1] += (byte)0x01;
+	}
+	if(IsKeyPressed(KEY_U))
+	{
+		ROM[register_PC+1] -= (byte)0x01;
+	}
+
 }
 int runEmu()
 {
